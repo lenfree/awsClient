@@ -22,7 +22,7 @@ func ec2Start(ctx *cli.Context) {
   logger.Debug(reflect.TypeOf(resp))
   ec2Instance(resp)
   totalEc2:= ec2Count(resp, instanceState)
-  logger.Debug("Total no of EC2 instance: ", totalEc2)
+  logger.Debug(instanceState, " instances ", totalEc2)
 
   //Get instance tag
 }
