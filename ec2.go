@@ -22,41 +22,30 @@ func ec2Start(ctx *cli.Context) {
   logger.Debug(reflect.TypeOf(resp))
   ec2Instance(resp)
   totalEc2:= ec2Count(resp, instanceState)
-  logger.Debug("Total no of EC2 instances: ", totalEc2)
+  logger.Debug("Total no of EC2 instance: ", totalEc2)
 
   //Get instance tag
 }
 
-func ec2Count (resp *ec2.DescribeInstancesOutput, instanceState string) int {
-  countTotal := len(resp.Reservations)
-  count := 0
-  countStopped := 0
-  countRunning := 0
+func ec2Count (resp *ec2.DescribeInstancesOutput, instanceState string) (count int) {
+  count = 0
   for idx, _ := range resp.Reservations {
     for _, inst := range resp.Reservations[idx].Instances {
-      if *inst.State.Name == "stopped" {
-        countStopped += 1
-      } else if *inst.State.Name == "running" {
-        countRunning += 1
+      switch instanceState {
+      case "stopped":
+        if *inst.State.Name == "stopped" {
+          count += 1
+        }
+      case "running":
+        if *inst.State.Name == "running" {
+          count += 1
+        }
+      default:
+        count = len(resp.Reservations)
       }
     }
   }
-  logger.Debug("Running instsances", countRunning)
-  logger.Debug("Stopped", countRunning)
-  logger.WithFields(logrus.Fields{
-    "Total": countTotal,
-    "Running": countRunning,
-    "Stopped": countStopped,
-  }).Info("EC2 Instances")
-  switch instanceState {
-  case "stopped":
-    count = countStopped
-  case "running":
-    count = countRunning
-  default:
-    count = countTotal
-  }
-  return count
+  return
 }
 
 func ec2Instance (resp *ec2.DescribeInstancesOutput) {
