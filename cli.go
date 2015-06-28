@@ -32,6 +32,11 @@ func printCommand() cli.Command {
         Value: "ap-southeast-2",
         Usage: "AWS Region",
       },
+      cli.StringFlag{
+        Name:  "state, s",
+        Value: "all",
+        Usage: "state",
+      },
     },
   }
   return command

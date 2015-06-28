@@ -10,7 +10,7 @@ import(
 
 func ec2Start(ctx *cli.Context) {
   region := ctx.String("region")
-
+  instanceState := ctx.String("state")
   logger.Debug("AWS region: ", region)
   // Create an EC2 service object in the "ap-southeast-2" region
   svc := ec2.New(&aws.Config{Region: region})
@@ -21,14 +21,42 @@ func ec2Start(ctx *cli.Context) {
   }
   logger.Debug(reflect.TypeOf(resp))
   ec2Instance(resp)
-  totalEc2:= ec2Count(resp)
-  logger.Debug("Total no of EC2 instance: ", totalEc2)
+  totalEc2:= ec2Count(resp, instanceState)
+  logger.Debug("Total no of EC2 instances: ", totalEc2)
 
   //Get instance tag
 }
 
-func ec2Count (resp *ec2.DescribeInstancesOutput) int {
-  return len(resp.Reservations)
+func ec2Count (resp *ec2.DescribeInstancesOutput, instanceState string) int {
+  countTotal := len(resp.Reservations)
+  count := 0
+  countStopped := 0
+  countRunning := 0
+  for idx, _ := range resp.Reservations {
+    for _, inst := range resp.Reservations[idx].Instances {
+      if *inst.State.Name == "stopped" {
+        countStopped += 1
+      } else if *inst.State.Name == "running" {
+        countRunning += 1
+      }
+    }
+  }
+  logger.Debug("Running instsances", countRunning)
+  logger.Debug("Stopped", countRunning)
+  logger.WithFields(logrus.Fields{
+    "Total": countTotal,
+    "Running": countRunning,
+    "Stopped": countStopped,
+  }).Info("EC2 Instances")
+  switch instanceState {
+  case "stopped":
+    count = countStopped
+  case "running":
+    count = countRunning
+  default:
+    count = countTotal
+  }
+  return count
 }
 
 func ec2Instance (resp *ec2.DescribeInstancesOutput) {

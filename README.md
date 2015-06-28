@@ -22,7 +22,7 @@ Build and execute
 -----------------
 ```shell
 go build
-./aws E --region
+./aws E --region "ap-southeast-2" --state "running"
 ./aws --help
 ```
 
