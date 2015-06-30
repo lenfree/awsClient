@@ -15,7 +15,7 @@ func initApp() *cli.App {
 
   app.Commands = []cli.Command{
     ec2Resource(),
-  //  s3Resource(),
+    s3Resource(),
   }
   return app
 }
@@ -65,20 +65,12 @@ func ec2Resource() cli.Command {
   return command
 }
 
-/*func s3Resource() cli.Command {
+func s3Resource() cli.Command {
   command := cli.Command{
     Name:      "s3",
     ShortName: "S",
     Usage:     "S3 Resources",
-    Action:    s3Start,
-
-    Flags: []cli.Flag{
-      cli.StringFlag{
-        Name:  "region,r",
-        Value: "ap-southeast-2",
-        Usage: "AWS Region",
-      },
-    },
+    Action:    s3List,
   }
   return command
-}*/
+}
