@@ -64,18 +64,34 @@ func ec2Instance (resp *ec2.DescribeInstancesOutput, instanceState string) {
   // resp has all of the response data, pull out instance IDs:
   for idx, _ := range resp.Reservations {
     for _, inst := range resp.Reservations[idx].Instances {
-      if *inst.State.Name == instanceState {
-        instanceTags := getTags(inst)
-        for idx, tag := range instanceTags {
-          logger.WithFields(logrus.Fields{
-            "Launch date": inst.LaunchTime,
-            "tag name": tag,
-            "tag #": idx,
-            "Instance ID": inst.InstanceID,
-            "State": *inst.State.Name,
-          }).Info("Instance ID: ", *inst.InstanceID)
+      switch instanceState {
+      case "stopped":
+        if *inst.State.Name == "stopped" {
+          instanceTags := getTags(inst)
+          for idx, tag := range instanceTags {
+            logger.WithFields(logrus.Fields{
+              "Launch date": inst.LaunchTime,
+              "tag name": tag,
+              "tag #": idx,
+              "Instance ID": inst.InstanceID,
+              "State": *inst.State.Name,
+            }).Info("Instance ID: ", *inst.InstanceID)
+          }
         }
-      } else {
+      case "running":
+        if *inst.State.Name == "running" {
+          instanceTags := getTags(inst)
+          for idx, tag := range instanceTags {
+            logger.WithFields(logrus.Fields{
+              "Launch date": inst.LaunchTime,
+              "tag name": tag,
+              "tag #": idx,
+              "Instance ID": inst.InstanceID,
+              "State": *inst.State.Name,
+            }).Info("Instance ID: ", *inst.InstanceID)
+          }
+        }
+      default:
         instanceTags := getTags(inst)
         for idx, tag := range instanceTags {
           logger.WithFields(logrus.Fields{

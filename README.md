@@ -15,14 +15,15 @@ Getting started
 export AWS_ACCESS_KEY_ID=keyid
 export AWS_SECRET_ACCESS_KEY=secretkey
 go run *.go --help
-go run *.go E --region awsRegion
+go run *.go E list --region awsRegion
 ```
 
 Build and execute
 -----------------
 ```shell
 go build
-./aws E --region "ap-southeast-2" --state "running"
+./aws E count --region "ap-southeast-2" --state "running"
+./aws ec2 list --region "ap-southeast-2" --state "stopped"
 ./aws --help
 ```
 
