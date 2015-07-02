@@ -16,6 +16,7 @@ func initApp() *cli.App {
   app.Commands = []cli.Command{
     ec2Resource(),
     s3Resource(),
+    route53Resource(),
   }
   return app
 }
@@ -71,6 +72,22 @@ func s3Resource() cli.Command {
     ShortName: "S",
     Usage:     "S3 Resources",
     Action:    s3List,
+  }
+  return command
+}
+
+func route53Resource() cli.Command {
+  command := cli.Command{
+    Name:      "route53",
+    ShortName: "R",
+    Usage:     "Manage DNS",
+    Subcommands: []cli.Command{
+      {
+        Name:  "list",
+        Usage: "list hosted zones by name",
+        Action: getHostedZones,
+      },
+    },
   }
   return command
 }
