@@ -86,6 +86,12 @@ func route53Resource() cli.Command {
         Name:  "list",
         Usage: "list hosted zones by name",
         Action: getHostedZones,
+        Flags: []cli.Flag{
+          cli.BoolFlag{
+            Name:  "recordset, rs",
+            Usage: "Return record set",
+          },
+        },
       },
     },
   }

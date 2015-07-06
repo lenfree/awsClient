@@ -10,8 +10,8 @@ import(
 
 func getHostedZones(ctx *cli.Context){
   svc := route53.New(nil)
-  params := &route53.ListHostedZonesByNameInput{
-  }
+  params := &route53.ListHostedZonesByNameInput{}
+  rrset := ctx.Bool("recordset")
   resp, err := svc.ListHostedZonesByName(params)
 
   if err != nil {
@@ -26,21 +26,31 @@ func getHostedZones(ctx *cli.Context){
   }
 
   for _, hostedZone := range resp.HostedZones {
-    logger.WithFields(logrus.Fields{
-      "RR set count": awsutil.StringValue(hostedZone.ResourceRecordSetCount),
-      "Zone ID": awsutil.StringValue(hostedZone.ID),
-    }).Info("Name", awsutil.StringValue(hostedZone.Name))
-    getRR(hostedZone.ID)
+    if rrset == true {
+      rrset := getRR(hostedZone.ID)
+      for _, rrecord := range rrset {
+        logger.WithFields(logrus.Fields{
+          "type":  rrecord["type"],
+          "value": rrecord["value"],
+          "TTL": rrecord["ttl"],
+        }).Info("Name", rrecord["name"])
+      }
+    } else {
+      logger.WithFields(logrus.Fields{
+        "RR set count": awsutil.StringValue(hostedZone.ResourceRecordSetCount),
+        "Zone ID": awsutil.StringValue(hostedZone.ID),
+      }).Info("Name", awsutil.StringValue(hostedZone.Name))
+    }
   }
 }
 
-func getRR(hostedZoneID *string) {
+func getRR(hostedZoneID *string) ([]map[string]string) {
   svc := route53.New(nil)
   rrsresp, err := svc.ListResourceRecordSets (& route53.ListResourceRecordSetsInput {HostedZoneID: hostedZoneID})
   if err != nil {
      logger.Fatal(err)
   }
-
+  rrSetResults := []map[string]string{}
   for i := range rrsresp.ResourceRecordSets {
     for j := range rrsresp.ResourceRecordSets[i].ResourceRecords{
       rrset := map[string]string{
@@ -49,11 +59,8 @@ func getRR(hostedZoneID *string) {
         "ttl":  awsutil.StringValue(*rrsresp.ResourceRecordSets[i].TTL),
         "value": awsutil.StringValue(rrsresp.ResourceRecordSets[i].ResourceRecords[j].Value),
       }
-    logger.WithFields(logrus.Fields{
-      "type":  rrset["type"],
-      "value": rrset["value"],
-      "TTL": rrset["ttl"],
-    }).Info("Name", rrset["name"])
+    rrSetResults = append(rrSetResults, rrset)
     }
   }
+  return rrSetResults
 }
