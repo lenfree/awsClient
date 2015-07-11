@@ -15,7 +15,7 @@ func ec2connect(svc *ec2.EC2) (*ec2.DescribeInstancesOutput, error) {
 }
 
 func s3connect(svc *s3.S3) (*s3.ListBucketsOutput, error) {
-  logger.Info("Attempting to connect...", svc)
+  logger.Info("Attempting to connect...")
   var params *s3.ListBucketsInput
   resp, err := svc.ListBuckets(params)
   if err != nil {

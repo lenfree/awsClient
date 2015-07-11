@@ -7,12 +7,11 @@ import(
   "github.com/aws/aws-sdk-go/aws/awserr"
   "github.com/aws/aws-sdk-go/aws/awsutil"
   "github.com/sirupsen/logrus"
-  "reflect"
+  "strings"
 )
 
 func s3List(ctx *cli.Context) {
   svc := s3.New(&aws.Config{Region: "ap-southeast-2"})
-  logger.Debug(reflect.TypeOf(svc))
   resp, err := s3connect(svc)
   if err != nil {
     if awsErr, ok := err.(awserr.Error); ok {
@@ -24,13 +23,22 @@ func s3List(ctx *cli.Context) {
         logger.Debug(err.Error())
     }
   }
-  s3Buckets(resp)
-}
-
-func s3Buckets(resp *s3.ListBucketsOutput) {
-  for _, bucket := range resp.Buckets {
+  buckets := s3Buckets(resp)
+  for _, bucket := range buckets {
     logger.WithFields(logrus.Fields{
       "Creation Date": bucket.CreationDate,
-    }).Info("Name", awsutil.StringValue(bucket.Name))
+    }).Info("Name:", bucket.Name)
   }
+}
+
+func s3Buckets(resp *s3.ListBucketsOutput) ([]Bucket) {
+  var buckets []Bucket
+  for _, bucket := range resp.Buckets {
+    bucket := Bucket{
+      Name: strings.Replace(awsutil.StringValue(bucket.Name), "\"", "", -1),
+      CreationDate: bucket.CreationDate,
+    }
+    buckets = append(buckets, bucket)
+  }
+  return buckets
 }
