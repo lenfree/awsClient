@@ -13,3 +13,8 @@ type R53 struct {
   Ttl    int64 `json:"ttl"`
   Value  string  `json:"value"`
 }
+
+type EC2InstanceTags struct {
+  Name   string `json:"name"`
+  Value  string `json:"value"`
+}

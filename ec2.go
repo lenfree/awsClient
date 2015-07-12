@@ -5,6 +5,8 @@ import(
   "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/sirupsen/logrus"
   "github.com/codegangsta/cli"
+  "github.com/aws/aws-sdk-go/aws/awsutil"
+  "strings"
   "reflect"
 )
 
@@ -64,53 +66,46 @@ func ec2Instance (resp *ec2.DescribeInstancesOutput, instanceState string) {
   // resp has all of the response data, pull out instance IDs:
   for idx, _ := range resp.Reservations {
     for _, inst := range resp.Reservations[idx].Instances {
+      instanceTags := getTags(inst)
       switch instanceState {
       case "stopped":
         if *inst.State.Name == "stopped" {
-          instanceTags := getTags(inst)
-          for idx, tag := range instanceTags {
-            logger.WithFields(logrus.Fields{
-              "Launch date": inst.LaunchTime,
-              "tag name": tag,
-              "tag #": idx,
-              "Instance ID": inst.InstanceID,
-              "State": *inst.State.Name,
-            }).Info("Instance ID: ", *inst.InstanceID)
-          }
+          logger.WithFields(logrus.Fields{
+            "Launch date": inst.LaunchTime,
+            "tags": instanceTags,
+            "Instance ID": inst.InstanceID,
+            "State": *inst.State.Name,
+          }).Info("Instance ID: ", *inst.KeyName)
         }
       case "running":
         if *inst.State.Name == "running" {
-          instanceTags := getTags(inst)
-          for idx, tag := range instanceTags {
-            logger.WithFields(logrus.Fields{
-              "Launch date": inst.LaunchTime,
-              "tag name": tag,
-              "tag #": idx,
-              "Instance ID": inst.InstanceID,
-              "State": *inst.State.Name,
-            }).Info("Instance ID: ", *inst.InstanceID)
-          }
-        }
-      default:
-        instanceTags := getTags(inst)
-        for idx, tag := range instanceTags {
           logger.WithFields(logrus.Fields{
             "Launch date": inst.LaunchTime,
-            "tag name": tag,
-            "tag #": idx,
+            "tags": instanceTags,
             "Instance ID": inst.InstanceID,
             "State": *inst.State.Name,
-          }).Info("Instance ID: ", *inst.InstanceID)
+          }).Info("Instance: ", *inst.KeyName)
         }
+      default:
+        logger.WithFields(logrus.Fields{
+          "Launch date": inst.LaunchTime,
+          "tags": instanceTags,
+          "Instance ID": inst.InstanceID,
+          "State": *inst.State.Name,
+        }).Info("Instance: ", *inst.KeyName)
       }
     }
   }
 }
 
-func getTags(inst *ec2.Instance) []string{
-  var tags []string
+func getTags(inst *ec2.Instance) ([]EC2InstanceTags) {
+  var tags []EC2InstanceTags
   for _, tag := range inst.Tags {
-    tags = append(tags, *tag.Value)
+    tag := EC2InstanceTags{
+      Name: strings.Replace(awsutil.StringValue(tag.Key), "\"", "", -1),
+      Value: strings.Replace(awsutil.StringValue(tag.Value), "\"", "", -1),
+    }
+    tags = append(tags, tag)
   }
   return tags
 }
